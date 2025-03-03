@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator with Graph Plotter</title>
+    <title>Calculator with Abjad System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -66,6 +66,7 @@
 <body>
     <div class="calculator">
         <input type="text" class="display" id="display" disabled>
+        <p id="abjadDisplay"></p>
         <div class="buttons">
             <button onclick="appendNumber('7')">7</button>
             <button onclick="appendNumber('8')">8</button>
@@ -89,26 +90,47 @@
     <canvas id="graph"></canvas>
     <script>
         let display = document.getElementById('display');
+        let abjadDisplay = document.getElementById('abjadDisplay');
+
+        const abjadMapping = {
+            '1': 'ا', '2': 'ب', '3': 'ج', '4': 'د', '5': 'ه',
+            '6': 'و', '7': 'ز', '8': 'ح', '9': 'ط', '0': 'ص',
+            '+': 'زائد', '-': 'ناقص', '*': 'ضرب', '/': 'قسمة', '=': 'يساوي'
+        };
+
         function appendNumber(number) {
             display.value += number;
+            updateAbjad();
         }
+
         function appendOperator(operator) {
             if (display.value !== '') {
                 display.value += operator;
+                updateAbjad();
             }
         }
+
         function calculateResult() {
             try {
                 let result = eval(display.value);
                 display.value = result;
+                updateAbjad();
                 plotGraph(result);
             } catch {
                 display.value = 'Error';
+                abjadDisplay.innerText = 'خطأ';
             }
         }
+
         function clearDisplay() {
             display.value = '';
+            abjadDisplay.innerText = '';
         }
+
+        function updateAbjad() {
+            abjadDisplay.innerText = display.value.split('').map(char => abjadMapping[char] || char).join(' ');
+        }
+
         function plotGraph(value) {
             let ctx = document.getElementById('graph').getContext('2d');
             if (window.myChart) {
