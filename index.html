@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator</title>
+    <title>Calculator with Graph Plotter</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
@@ -19,6 +21,7 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         .display {
             width: 100%;
@@ -54,6 +57,10 @@
         .operator:hover {
             background: #e08900;
         }
+        canvas {
+            max-width: 400px;
+            max-height: 300px;
+        }
     </style>
 </head>
 <body>
@@ -79,6 +86,7 @@
             <button onclick="clearDisplay()" style="grid-column: span 4; background: red; color: white;">C</button>
         </div>
     </div>
+    <canvas id="graph"></canvas>
     <script>
         let display = document.getElementById('display');
         function appendNumber(number) {
@@ -91,13 +99,47 @@
         }
         function calculateResult() {
             try {
-                display.value = eval(display.value);
+                let result = eval(display.value);
+                display.value = result;
+                plotGraph(result);
             } catch {
                 display.value = 'Error';
             }
         }
         function clearDisplay() {
             display.value = '';
+        }
+        function plotGraph(value) {
+            let ctx = document.getElementById('graph').getContext('2d');
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+            let data = [];
+            let labels = [];
+            for (let x = -10; x <= 10; x += 1) {
+                labels.push(x);
+                data.push(eval(display.value.replace(/x/g, x)));
+            }
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Graph',
+                        data: data,
+                        borderColor: 'blue',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'X' } },
+                        y: { title: { display: true, text: 'Y' } }
+                    }
+                }
+            });
         }
     </script>
 </body>
