@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memory Card Game - Letters</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -41,13 +42,21 @@
             background-color: #ccc;
             pointer-events: none;
         }
+        .timer, .high-scores {
+            margin-top: 10px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
 
     <h1>Memory Card Game - Letters</h1>
+    <div class="timer">⏳ Time: <span id="timer">0</span> sec</div>
     <div class="game-board" id="game-board"></div>
     <button onclick="restartGame()">Restart</button>
+
+    <h2>🏆 High Scores</h2>
+    <ol id="high-scores"></ol>
 
     <script>
         const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -55,19 +64,34 @@
         let cards = [];
         let flippedCards = [];
         let matchedPairs = 0;
+        let startTime;
+        let timerInterval;
+        let timerDisplay = document.getElementById("timer");
 
         function shuffle(array) {
             return array.sort(() => Math.random() - 0.5);
         }
 
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                timerDisplay.innerText = elapsedTime;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+        }
+
         function createBoard() {
             gameBoard.innerHTML = "";
-            let shuffledLetters = shuffle([...letters, ...letters]); // Double the letters for pairs
+            let shuffledLetters = shuffle([...letters, ...letters]); 
             shuffledLetters.forEach(letter => {
                 let card = document.createElement("div");
                 card.classList.add("card");
                 card.dataset.letter = letter;
-                card.innerText = "?"; // Initially hidden
+                card.innerText = "?"; 
                 card.addEventListener("click", flipCard);
                 gameBoard.appendChild(card);
                 cards.push(card);
@@ -95,7 +119,10 @@
                 matchedPairs++;
 
                 if (matchedPairs === letters.length) {
-                    setTimeout(() => alert("You won! 🎉"), 300);
+                    stopTimer();
+                    let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+                    saveHighScore(elapsedTime);
+                    setTimeout(() => alert(`🎉 You won in ${elapsedTime} seconds!`), 300);
                 }
             } else {
                 card1.classList.remove("flipped");
@@ -111,10 +138,30 @@
             cards = [];
             flippedCards = [];
             matchedPairs = 0;
+            stopTimer();
+            timerDisplay.innerText = "0";
+            startTimer();
             createBoard();
         }
 
+        function saveHighScore(time) {
+            let scores = JSON.parse(localStorage.getItem("highScores")) || [];
+            scores.push(time);
+            scores.sort((a, b) => a - b);
+            scores = scores.slice(0, 5);
+            localStorage.setItem("highScores", JSON.stringify(scores));
+            displayHighScores();
+        }
+
+        function displayHighScores() {
+            let scores = JSON.parse(localStorage.getItem("highScores")) || [];
+            let highScoreList = document.getElementById("high-scores");
+            highScoreList.innerHTML = scores.map(time => `<li>${time} sec</li>`).join("");
+        }
+
         createBoard();
+        startTimer();
+        displayHighScores();
     </script>
 
 </body>
