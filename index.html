@@ -3,166 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator with Abjad System</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Memory Card Game - Letters</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #007bff;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .calculator {
-            width: 250px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .display {
-            width: 100%;
-            height: 50px;
-            text-align: right;
-            font-size: 1.5em;
-            padding: 10px;
-            border: none;
-            outline: none;
-            background: #eee;
-            margin-bottom: 10px;
-        }
-        .buttons {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        button {
-            height: 50px;
-            font-size: 1.2em;
-            border: none;
             cursor: pointer;
-            background: #ddd;
-            border-radius: 5px;
+            border-radius: 10px;
+            user-select: none;
         }
-        button:hover {
-            background: #ccc;
+        .flipped {
+            background-color: #28a745;
         }
-        .operator {
-            background: #ff9500;
-            color: white;
-        }
-        .operator:hover {
-            background: #e08900;
-        }
-        canvas {
-            max-width: 400px;
-            max-height: 300px;
+        .hidden {
+            background-color: #ccc;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div class="calculator">
-        <input type="text" class="display" id="display" disabled>
-        <p id="abjadDisplay"></p>
-        <div class="buttons">
-            <button onclick="appendNumber('7')">7</button>
-            <button onclick="appendNumber('8')">8</button>
-            <button onclick="appendNumber('9')">9</button>
-            <button class="operator" onclick="appendOperator('/')">/</button>
-            <button onclick="appendNumber('4')">4</button>
-            <button onclick="appendNumber('5')">5</button>
-            <button onclick="appendNumber('6')">6</button>
-            <button class="operator" onclick="appendOperator('*')">*</button>
-            <button onclick="appendNumber('1')">1</button>
-            <button onclick="appendNumber('2')">2</button>
-            <button onclick="appendNumber('3')">3</button>
-            <button class="operator" onclick="appendOperator('-')">-</button>
-            <button onclick="appendNumber('0')">0</button>
-            <button onclick="appendNumber('.')">.</button>
-            <button class="operator" onclick="calculateResult()">=</button>
-            <button class="operator" onclick="appendOperator('+')">+</button>
-            <button onclick="clearDisplay()" style="grid-column: span 4; background: red; color: white;">C</button>
-        </div>
-    </div>
-    <canvas id="graph"></canvas>
+
+    <h1>Memory Card Game - Letters</h1>
+    <div class="game-board" id="game-board"></div>
+    <button onclick="restartGame()">Restart</button>
+
     <script>
-        let display = document.getElementById('display');
-        let abjadDisplay = document.getElementById('abjadDisplay');
+        const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        let gameBoard = document.getElementById("game-board");
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
 
-        const abjadMapping = {
-            '1': 'ا', '2': 'ب', '3': 'ج', '4': 'د', '5': 'ه',
-            '6': 'و', '7': 'ز', '8': 'ح', '9': 'ط', '0': 'ص',
-            '+': 'زائد', '-': 'ناقص', '*': 'ضرب', '/': 'قسمة', '=': 'يساوي'
-        };
-
-        function appendNumber(number) {
-            display.value += number;
-            updateAbjad();
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
         }
 
-        function appendOperator(operator) {
-            if (display.value !== '') {
-                display.value += operator;
-                updateAbjad();
-            }
-        }
-
-        function calculateResult() {
-            try {
-                let result = eval(display.value);
-                display.value = result;
-                updateAbjad();
-                plotGraph(result);
-            } catch {
-                display.value = 'Error';
-                abjadDisplay.innerText = 'خطأ';
-            }
-        }
-
-        function clearDisplay() {
-            display.value = '';
-            abjadDisplay.innerText = '';
-        }
-
-        function updateAbjad() {
-            abjadDisplay.innerText = display.value.split('').map(char => abjadMapping[char] || char).join(' ');
-        }
-
-        function plotGraph(value) {
-            let ctx = document.getElementById('graph').getContext('2d');
-            if (window.myChart) {
-                window.myChart.destroy();
-            }
-            let data = [];
-            let labels = [];
-            for (let x = -10; x <= 10; x += 1) {
-                labels.push(x);
-                data.push(eval(display.value.replace(/x/g, x)));
-            }
-            window.myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Graph',
-                        data: data,
-                        borderColor: 'blue',
-                        borderWidth: 2,
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: { title: { display: true, text: 'X' } },
-                        y: { title: { display: true, text: 'Y' } }
-                    }
-                }
+        function createBoard() {
+            gameBoard.innerHTML = "";
+            let shuffledLetters = shuffle([...letters, ...letters]); // Double the letters for pairs
+            shuffledLetters.forEach(letter => {
+                let card = document.createElement("div");
+                card.classList.add("card");
+                card.dataset.letter = letter;
+                card.innerText = "?"; // Initially hidden
+                card.addEventListener("click", flipCard);
+                gameBoard.appendChild(card);
+                cards.push(card);
             });
         }
+
+        function flipCard() {
+            if (flippedCards.length < 2 && !this.classList.contains("flipped")) {
+                this.classList.add("flipped");
+                this.innerText = this.dataset.letter;
+                flippedCards.push(this);
+            }
+
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+
+        function checkMatch() {
+            let [card1, card2] = flippedCards;
+
+            if (card1.dataset.letter === card2.dataset.letter) {
+                card1.classList.add("hidden");
+                card2.classList.add("hidden");
+                matchedPairs++;
+
+                if (matchedPairs === letters.length) {
+                    setTimeout(() => alert("You won! 🎉"), 300);
+                }
+            } else {
+                card1.classList.remove("flipped");
+                card2.classList.remove("flipped");
+                card1.innerText = "?";
+                card2.innerText = "?";
+            }
+
+            flippedCards = [];
+        }
+
+        function restartGame() {
+            cards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            createBoard();
+        }
+
+        createBoard();
     </script>
+
 </body>
 </html>
